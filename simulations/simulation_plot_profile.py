@@ -1,19 +1,41 @@
 import os
-
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
-
 from gprMax.exceptions import CmdInputError
 from tools.outputfiles_merge import get_output_data
 
 class PlotProfile:
+    """
+    Class to plot the output data
+    """
+
     def __init__(self, outputfile, rx_component):
+        """
+        Init function for PlotProfile
+
+        Parameters:
+        self (PlotProfile): the PlotProfile to initialize
+        outputfile (str): the outputfile to plot
+        rx_component (str): the component to plot
+
+        Returns:
+        None
+        """
+
         self.outputfile = outputfile
         self.rx_component = rx_component
 
     def get_output_data(self):
-        # Open output file and read number of outputs (receivers)
+        """
+        Get the output data from the h5 file
+
+        Parameters:
+        self (PlotProfile): the PlotProfile to get the output data from
+
+        Returns:
+        None
+        """
         f = h5py.File(self.outputfile, 'r')
         nrx = f.attrs['nrx']
         f.close()
@@ -25,11 +47,17 @@ class PlotProfile:
         for rx in range(1, nrx + 1):
             self.outputdata, self.dt = get_output_data(self.outputfile, rx, self.rx_component)
 
-    def plot(self):
-        plthandle = self.mpl_plot()
-        plthandle.show()
-
     def mpl_plot(self):
+        """
+        Create a matplotlib plot of the output data
+
+        Parameters:
+        self (PlotProfile): the PlotProfile to plot
+
+        Returns:
+        plt: the matplotlib plot
+        """
+
         (path, filename) = os.path.split(self.outputfile)
 
         fig = plt.figure(num=filename + ' - rx' + str(1),  # Adjust this as needed
@@ -63,3 +91,17 @@ class PlotProfile:
                     bbox_inches='tight', pad_inches=0.1)
 
         return plt
+    
+    def plot(self):
+        """
+        Function to plot the output data
+
+        Parameters:
+        self (PlotProfile): the PlotProfile to plot
+
+        Returns:
+        None
+        """
+        
+        plthandle = self.mpl_plot()
+        plthandle.show()

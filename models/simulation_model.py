@@ -2,10 +2,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class SimulationModel:
-    # This class is used to store the model information and generate the base model.
+    """
+    Class to represent the simulation model
+    """
 
     def __init__(self, name, x_size, y_size, z_size, 
                  discrete, materials, path):
+        """
+        Initialize the model
+
+        Parameters:
+        self (SimulationModel): the model to initialize
+        name (str): the name of the model
+        x_size (float): the x size of the model
+        y_size (float): the y size of the model
+        z_size (float): the z size of the model
+        discrete (list): the discretization of the model
+        materials (list): the materials of the model
+        path (str): the path to the model
+
+        Returns:
+        None
+        """
         self.name = name
         self.x_size = x_size
         self.y_size = y_size
@@ -15,11 +33,33 @@ class SimulationModel:
         self.path = path
 
     def calculate_measurment_step(self, number_of_measurements, antenna_spacing):
+        """ 
+        Calculate the measurement step 
+
+        Parameters:
+        self (SimulationModel): the model to calculate the measurement step from
+        number_of_measurements (int): the number of measurements
+        antenna_spacing (int): the antenna spacing
+
+        Returns:
+        float: the measurement step
+        """
+
         nx = self.model.shape[0]
         nx_buffered = nx - 50 # buffer of 20 cell on each side
         return round((nx_buffered * self.discrete[0] - antenna_spacing) / number_of_measurements, 2)
 
     def generate_base_glacier(self):
+        """
+        Generate base model
+
+        Parameters:
+        self (SimulationModel): the model to generate
+
+        Returns:
+        none
+        """
+
         nx = int(self.x_size / self.discrete[0])
         ny = int(self.y_size / self.discrete[1])
         nz = int(self.z_size / self.discrete[2])
@@ -73,6 +113,17 @@ class SimulationModel:
         return m, nb
 
     def plot_initial_model(self, transceiver, receiver):
+        """
+        Plot the initial model
+
+        Parameters:
+        self (SimulationModel): the model to plot
+        transceiver (np.array): the transceiver position
+        receiver (np.array): the receiver position
+
+        Returns:
+        None
+        """
 
         X, Y = np.meshgrid(np.arange(0, self.x_size, self.discrete[0]), 
                         np.arange(0, self.z_size, self.discrete[2]))

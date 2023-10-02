@@ -1,8 +1,19 @@
 from pathlib import Path
 
 class InitializeFolders:
+    """
+    Class to initialize folders
+    """
 
     @staticmethod
     def check_and_create_directories():
-        # Check if inout_files exists and create if not
+        """
+        Check if the directories exist, if not create them
+        
+        Parameters:
+        None
+
+        Returns:
+        None
+        """
         Path('inout_files/figures').mkdir(parents=True, exist_ok=True)
