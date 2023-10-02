@@ -59,33 +59,33 @@ def main():
     #Plot initial model
     model.plot_initial_model(transceiver1, receiver1)
 
-    # # Call FileService to write files
-    # FileService.write_materials_file(model.path + model.name + '_materials', 
-    #                                  model.materials)
+    # Call FileService to write files
+    FileService.write_materials_file(model.path + model.name + '_materials', 
+                                     model.materials)
     
-    # FileService.write_h5_file(model.path + model.name + '_h5', 
-    #                           model)
+    FileService.write_h5_file(model.path + model.name + '_h5', 
+                              model)
 
-    # FileService.write_input_file(model, 
-    #                             path_to_files, 
-    #                             path_to_files + '_materials', 
-    #                             path_to_files + '_h5', 
-    #                             25e6,   # Change frequency in Hz here
-    #                             transceiver1, receiver1, 
-    #                             measurement_step, 
-    #                             1000e-9) # Change time window in s here
+    FileService.write_input_file(model, 
+                                path_to_files, 
+                                path_to_files + '_materials', 
+                                path_to_files + '_h5', 
+                                25e6,   # Change frequency in Hz here
+                                transceiver1, receiver1, 
+                                measurement_step, 
+                                1000e-9) # Change time window in s here
         
-    # # Run simulation
-    # if args.run:
-    #     simulation_runner = SimulationRunner(model)
-    #     simulation_runner.run_simulation(measurement_number)
-    #     simulation_runner.merge_files(True)
+    # Run simulation
+    if args.run:
+        simulation_runner = SimulationRunner(model)
+        simulation_runner.run_simulation(measurement_number)
+        simulation_runner.merge_files(True)
         
-    # # Plot profile
-    # if args.plot:
-    #     plot_profile = PlotProfile(model.path + model.name + '_merged.out', 'Ey')
-    #     plot_profile.get_output_data()
-    #     plot_profile.plot()
+    # Plot profile
+    if args.plot:
+        plot_profile = PlotProfile(model.path + model.name + '_merged.out', 'Ey')
+        plot_profile.get_output_data()
+        plot_profile.plot()
 
 if __name__ == "__main__":
     main()
