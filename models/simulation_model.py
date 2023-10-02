@@ -27,6 +27,50 @@ class SimulationModel:
         self.model = np.zeros((nx, ny, nz)) # Free space = 0
         self.model[:, :, round(5.0 / self.discrete[2]):nz] = 1 # Glacier = 1
 
+    import numpy as np
+
+    def water_inclusion(self, LWC = 0.1, s_max = 0.2, hb = 100, f = 1):
+        """
+        Include water inclusions in the model.
+
+        Parameters:
+        LWC: liquid water content in %
+        s_max: maximum radius of inclusion (in m). Remark: no minimal size
+        hb: bedrock thickness (we don't want water inclusions where the bedrock is)
+        f: fraction of water saturated layer, i.e. the ice layer that contains the water inclusions (starting from the bedrock)
+
+        Returns:
+        m: a logical array with 1 for water presence
+        nb: number of scatterers
+        """
+
+        lx = self.x_size
+        ly = self.y_size
+        h = self.discrete[0] # assuming y discretization
+        X = int(lx / h)  # image size along x axis, in pixel
+        Y = int(ly / h)  # image size along y axis, in pixel
+
+        # Scatter inclusions
+        col, rows = np.meshgrid(np.arange(1, X+1), np.arange(1, Y+1))
+
+        m = np.zeros((Y, X), dtype=bool)  # m is a 2D "logical" matrix of the "dry" water layer (without inclusion).
+
+        liq = 0  # initiation of liquid water content
+        nb = 0   # initial counts of scatterers
+
+        while liq < LWC:
+            x = np.random.rand() * X  # center location in pixel
+            y = np.random.rand() * Y  # note that repeatability is allowed, but shouldn't be an issue for small LWC values as it is in our case (~1%)
+            r = np.random.rand() * s_max  # in meters
+            
+            # we only create water inclusion above bedrock and below the water saturated layer defined by f
+            if y < Y - hb/h and y > Y * (1 - f):
+                m = np.logical_or(m, (rows - y)**2 + (col - x)**2 <= (r/h)**2)  # in pixel
+                liq += (np.pi * r**2 / (lx * ly)) * 100  # LWC in 2D in % (m2)
+                nb += 1
+
+        nb -= 1  # nb was incremented by one before exiting the while loop
+        return m, nb
 
     def plot_initial_model(self, transceiver, receiver):
 

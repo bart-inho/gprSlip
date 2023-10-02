@@ -22,10 +22,10 @@ def main():
     freespace = Material(1. , 0.   , 1., 0., 'freespace') # Free space
     glacier   = Material(3.2, 5.e-8, 1., 0., 'glacier'  ) # Glacier
     bedrock   = Material(5. , 1.e-2, 1., 0., 'bedrock'  ) # Bedrock
-    water     = Material(1. , 0.   , 1., 0., 'water'    ) # Water
+    water     = Material(80. , 1.e-10   , 1., 0., 'water'    ) # Water
     
     # Initialize SimulationModel
-    model_name    = 'test_roughness'
+    model_name    = 'test_temperate_glacier'
     inout_files   = 'inout_files/'
     path_to_files = inout_files + model_name
 
@@ -40,6 +40,7 @@ def main():
     
     # Generate base model
     model.generate_base_glacier()
+    model.water_inclusion()
 
     measurement_number = 100 # number of traces
     antenna_spacing    = 4  # Change antenna spacing in [m] here
