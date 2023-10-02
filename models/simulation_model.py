@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 class SimulationModel:
     """
@@ -46,7 +47,7 @@ class SimulationModel:
         """
 
         nx = self.model.shape[0]
-        nx_buffered = nx - 50 # buffer of 20 cell on each side
+        nx_buffered = nx - 2*5/self.discrete[0] # buffer of 5 meters
         return round((nx_buffered * self.discrete[0] - antenna_spacing) / number_of_measurements, 2)
 
     def generate_base_glacier(self):
@@ -92,19 +93,22 @@ class SimulationModel:
         total_liquid_content = 0 # initialize the total liquid content
         
         # We initialize tqdm in manual mode
-        while total_liquid_content < liquid_water_content:
 
-            x_center_pixel = np.random.rand() * nx # Randomly select a pixel in the x direction
-            z_center_pixel = np.random.rand() * nz # Randomly select a pixel in the z direction
-            radius = np.random.rand() * max_inclusion_radius # Randomly select a radius
+        with tqdm(total=liquid_water_content) as pbar:
+            while total_liquid_content < liquid_water_content:
 
-            # This will create circles of water inclusions in the x-z plane
-            water_matrix = np.logical_or(water_matrix, ((rows - z_center_pixel) ** 2 + (cols - x_center_pixel) ** 2 <= (radius / self.discrete[2]) ** 2))
-            
-            # Calculate the new total liquid content after adding the inclusion
-            new_liquid_content = (np.pi * radius ** 2 / (self.x_size * self.z_size)) * 100
-            total_liquid_content += new_liquid_content
+                x_center_pixel = np.random.rand() * nx # Randomly select a pixel in the x direction
+                z_center_pixel = np.random.rand() * nz # Randomly select a pixel in the z direction
+                radius = np.random.rand() * max_inclusion_radius # Randomly select a radius
 
+                # This will create circles of water inclusions in the x-z plane
+                water_matrix = np.logical_or(water_matrix, ((rows - z_center_pixel) ** 2 + (cols - x_center_pixel) ** 2 <= (radius / self.discrete[2]) ** 2))
+                
+                # Calculate the new total liquid content after adding the inclusion
+                new_liquid_content = (np.pi * radius ** 2 / (self.x_size * self.z_size)) * 100
+                total_liquid_content += new_liquid_content
+
+                pbar.update(round(new_liquid_content, 5)) # Update the progress bar
 
         # Update the model to include the water inclusions
         for i in range(nz):

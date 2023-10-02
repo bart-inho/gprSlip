@@ -18,9 +18,9 @@ User must have gprMax installed and properly set up on their system. For more in
 
 ### Command-Line Options:
 
+- `--model`: Generate the model files.
 - `--run`: Run the simulation.
 - `--plot`: Plot the simulation results.
-- `--rough`: Incorporate rough bedrock (this feature is mentioned but not yet implemented in the provided code).
 
 Example usage:
 

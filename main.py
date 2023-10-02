@@ -9,25 +9,24 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--model', action='store_true', help='generate the model')
     parser.add_argument('--run', action='store_true', help='run the simulation')
     parser.add_argument('--plot', action='store_true', help='plot the simulation')
-    parser.add_argument('--rough', action='store_true', help='rough bedrock')
     args = parser.parse_args()
 
     # Initialize folders
     InitializeFolders.check_and_create_directories()
 
-    # Initialize Materials
-    # Change the material names in the "Material" class 
-    freespace = Material(1. , 0.   , 1., 0., 'freespace') # Free space
-    glacier   = Material(3.2, 5.e-8, 1., 0., 'glacier'  ) # Glacier
-    bedrock   = Material(6. , 1.e-3, 1., 0., 'bedrock'  ) # Bedrock
-    water     = Material(80. , 5.e-4   , 1., 0., 'water'    ) # Water
-    
-    # Initialize SimulationModel
+    # Initialize folders paths
     model_name    = 'test_temperate_glacier'
     inout_files   = 'inout_files/'
     path_to_files = inout_files + model_name
+
+    # Initialize Materials
+    freespace = Material(1. , 0.   , 1., 0., 'freespace') # Free space
+    glacier   = Material(3.2, 5.e-8, 1., 0., 'glacier'  ) # Glacier
+    bedrock   = Material(6. , 1.e-3, 1., 0., 'bedrock'  ) # Bedrock
+    water     = Material(80. , 5.e-4   , 1., 0., 'water') # Water
 
     dis = 0.01
 
@@ -45,15 +44,15 @@ def main():
     measurement_number = 100 # number of traces
     antenna_spacing    = 4  # Change antenna spacing in [m] here
     measurement_step   = model.calculate_measurment_step(measurement_number, 
-                                                         antenna_spacing) # Change antenna spacing in m here
-     
+                                                        antenna_spacing) # Change antenna spacing in m here
+    
     # Add antenna positions
-    transceiver1 = [round(25 * model.discrete[0]), # 25 cells of buffer (20 minimum)    
-                    0,
+    transceiver1 = [5, # 25 cells of buffer (20 minimum)    
+                    0, # It is a 2D model, so y = 0
                     4.5] # 0.5 cm above the glacier surface
     
-    receiver1    = [round(25 * model.discrete[0] + antenna_spacing), # 25 cells of buffer (20 minimum)
-                    0,
+    receiver1    = [5 + antenna_spacing, # 25 cells of buffer (20 minimum)
+                    0, # It is a 2D model, so y = 0
                     4.5] # 0.5 cm above the glacier surface
         
     #Plot initial model
@@ -61,10 +60,10 @@ def main():
 
     # Call FileService to write files
     FileService.write_materials_file(model.path + model.name + '_materials', 
-                                     model.materials)
+                                    model.materials)
     
     FileService.write_h5_file(model.path + model.name + '_h5', 
-                              model)
+                            model)
 
     FileService.write_input_file(model, 
                                 path_to_files, 
@@ -74,7 +73,7 @@ def main():
                                 transceiver1, receiver1, 
                                 measurement_step, 
                                 1000e-9) # Change time window in s here
-        
+    
     # Run simulation
     if args.run:
         simulation_runner = SimulationRunner(model)
