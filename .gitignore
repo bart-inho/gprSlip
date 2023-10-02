@@ -1,0 +1,12 @@
+__pycache__
+.DS_Store
+.gitattributes
+inout_files/
+*.txt
+*.h5
+*.log
+*.dat
+*.in
+*.out
+*.png
+*.m

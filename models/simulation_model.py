@@ -60,57 +60,56 @@ class SimulationModel:
         none
         """
 
+        nz = int(self.z_size / self.discrete[2])
+        self.model[:, :, 0:round(5.0/self.discrete[2])] = 0 # Freespace = 0
+        self.model[:, :, round(105.0/self.discrete[2]):nz] = 2 # Bedrock = 2
+
+    def water_inclusion(self, 
+                        liquid_water_content=0.1, 
+                        max_inclusion_radius=0.2):
+        """
+        Adds water inclusions to the glacier model.
+        
+        Parameters:
+        liquid_water_content (float): liquid water content in %.
+        max_inclusion_radius (float): maximum radius of water inclusion in meters.
+        """
+
         nx = int(self.x_size / self.discrete[0])
         ny = int(self.y_size / self.discrete[1])
         nz = int(self.z_size / self.discrete[2])
-        
-        self.model = np.zeros((nx, ny, nz)) # Free space = 0
+
+        # Initialize the model
+        self.model = np.zeros((nx, ny, nz), dtype=int)
         self.model[:, :, round(5.0 / self.discrete[2]):nz] = 1 # Glacier = 1
 
-    import numpy as np
+        # Create a mesh grid based on the model dimensions
+        cols, rows = np.meshgrid(np.arange(nx), np.arange(nz))
 
-    def water_inclusion(self, LWC = 0.1, s_max = 0.2, hb = 100, f = 1):
-        """
-        Include water inclusions in the model.
+        # Initiate a matrix to represent water presence (1 for water presence)
+        water_matrix = np.zeros((nz, nx), dtype=bool)
+        
+        total_liquid_content = 0 # initialize the total liquid content
+        
+        # We initialize tqdm in manual mode
+        while total_liquid_content < liquid_water_content:
 
-        Parameters:
-        LWC: liquid water content in %
-        s_max: maximum radius of inclusion (in m). Remark: no minimal size
-        hb: bedrock thickness (we don't want water inclusions where the bedrock is)
-        f: fraction of water saturated layer, i.e. the ice layer that contains the water inclusions (starting from the bedrock)
+            x_center_pixel = np.random.rand() * nx # Randomly select a pixel in the x direction
+            z_center_pixel = np.random.rand() * nz # Randomly select a pixel in the z direction
+            radius = np.random.rand() * max_inclusion_radius # Randomly select a radius
 
-        Returns:
-        m: a logical array with 1 for water presence
-        nb: number of scatterers
-        """
-
-        lx = self.x_size
-        ly = self.y_size
-        h = self.discrete[0] # assuming y discretization
-        X = int(lx / h)  # image size along x axis, in pixel
-        Y = int(ly / h)  # image size along y axis, in pixel
-
-        # Scatter inclusions
-        col, rows = np.meshgrid(np.arange(1, X+1), np.arange(1, Y+1))
-
-        m = np.zeros((Y, X), dtype=bool)  # m is a 2D "logical" matrix of the "dry" water layer (without inclusion).
-
-        liq = 0  # initiation of liquid water content
-        nb = 0   # initial counts of scatterers
-
-        while liq < LWC:
-            x = np.random.rand() * X  # center location in pixel
-            y = np.random.rand() * Y  # note that repeatability is allowed, but shouldn't be an issue for small LWC values as it is in our case (~1%)
-            r = np.random.rand() * s_max  # in meters
+            # This will create circles of water inclusions in the x-z plane
+            water_matrix = np.logical_or(water_matrix, ((rows - z_center_pixel) ** 2 + (cols - x_center_pixel) ** 2 <= (radius / self.discrete[2]) ** 2))
             
-            # we only create water inclusion above bedrock and below the water saturated layer defined by f
-            if y < Y - hb/h and y > Y * (1 - f):
-                m = np.logical_or(m, (rows - y)**2 + (col - x)**2 <= (r/h)**2)  # in pixel
-                liq += (np.pi * r**2 / (lx * ly)) * 100  # LWC in 2D in % (m2)
-                nb += 1
+            # Calculate the new total liquid content after adding the inclusion
+            new_liquid_content = (np.pi * radius ** 2 / (self.x_size * self.z_size)) * 100
+            total_liquid_content += new_liquid_content
 
-        nb -= 1  # nb was incremented by one before exiting the while loop
-        return m, nb
+
+        # Update the model to include the water inclusions
+        for i in range(nz):
+            self.model[water_matrix[i], :, i] = 3  # Assuming that water is represented by the value 3 in the model
+
 
     def plot_initial_model(self, transceiver, receiver):
         """
@@ -138,5 +137,5 @@ class SimulationModel:
         plt.ylabel('depth [m]')
         plt.xlabel('distance [m]')
         plt.title(self.name)
-        plt.savefig(self.path+'/figures/'+self.name+'.png')
+        plt.savefig(self.path+'/figures/'+self.name+'.png', dpi=300)
         plt.close()        

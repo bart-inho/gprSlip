@@ -21,15 +21,15 @@ def main():
     # Change the material names in the "Material" class 
     freespace = Material(1. , 0.   , 1., 0., 'freespace') # Free space
     glacier   = Material(3.2, 5.e-8, 1., 0., 'glacier'  ) # Glacier
-    bedrock   = Material(5. , 1.e-2, 1., 0., 'bedrock'  ) # Bedrock
-    water     = Material(80. , 1.e-10   , 1., 0., 'water'    ) # Water
+    bedrock   = Material(6. , 1.e-3, 1., 0., 'bedrock'  ) # Bedrock
+    water     = Material(80. , 5.e-4   , 1., 0., 'water'    ) # Water
     
     # Initialize SimulationModel
     model_name    = 'test_temperate_glacier'
     inout_files   = 'inout_files/'
     path_to_files = inout_files + model_name
 
-    dis = 0.08
+    dis = 0.01
 
     # Generate model
     model = SimulationModel(model_name, 
@@ -39,8 +39,8 @@ def main():
                             inout_files)
     
     # Generate base model
-    model.generate_base_glacier()
     model.water_inclusion()
+    model.generate_base_glacier()
 
     measurement_number = 100 # number of traces
     antenna_spacing    = 4  # Change antenna spacing in [m] here
@@ -59,33 +59,33 @@ def main():
     #Plot initial model
     model.plot_initial_model(transceiver1, receiver1)
 
-    # Call FileService to write files
-    FileService.write_materials_file(model.path + model.name + '_materials', 
-                                     model.materials)
+    # # Call FileService to write files
+    # FileService.write_materials_file(model.path + model.name + '_materials', 
+    #                                  model.materials)
     
-    FileService.write_h5_file(model.path + model.name + '_h5', 
-                              model)
+    # FileService.write_h5_file(model.path + model.name + '_h5', 
+    #                           model)
 
-    FileService.write_input_file(model, 
-                                path_to_files, 
-                                path_to_files + '_materials', 
-                                path_to_files + '_h5', 
-                                25e6,   # Change frequency in Hz here
-                                transceiver1, receiver1, 
-                                measurement_step, 
-                                1000e-9) # Change time window in s here
+    # FileService.write_input_file(model, 
+    #                             path_to_files, 
+    #                             path_to_files + '_materials', 
+    #                             path_to_files + '_h5', 
+    #                             25e6,   # Change frequency in Hz here
+    #                             transceiver1, receiver1, 
+    #                             measurement_step, 
+    #                             1000e-9) # Change time window in s here
         
-    # Run simulation
-    if args.run:
-        simulation_runner = SimulationRunner(model)
-        simulation_runner.run_simulation(measurement_number)
-        simulation_runner.merge_files(True)
+    # # Run simulation
+    # if args.run:
+    #     simulation_runner = SimulationRunner(model)
+    #     simulation_runner.run_simulation(measurement_number)
+    #     simulation_runner.merge_files(True)
         
-    # Plot profile
-    if args.plot:
-        plot_profile = PlotProfile(model.path + model.name + '_merged.out', 'Ey')
-        plot_profile.get_output_data()
-        plot_profile.plot()
+    # # Plot profile
+    # if args.plot:
+    #     plot_profile = PlotProfile(model.path + model.name + '_merged.out', 'Ey')
+    #     plot_profile.get_output_data()
+    #     plot_profile.plot()
 
 if __name__ == "__main__":
     main()
