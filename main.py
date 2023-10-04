@@ -2,12 +2,15 @@
 from services.file_service import FileService
 from services.folder_init import InitializeFolders
 from models.simulation_model import SimulationModel
+from models.inclusion_displacer import InclusionDisplacer
 from models.material import Material
 from simulations.simulation_runner import SimulationRunner
 from simulations.simulation_plot_profile import PlotProfile  
 import argparse
 
 def main():
+
+    # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', action='store_true', help='generate the model')
     parser.add_argument('--run', action='store_true', help='run the simulation')
@@ -19,6 +22,7 @@ def main():
 
     # Initialize folders paths
     model_name    = 'test_temperate_glacier'
+    model_name_displaced = 'test_temperate_glacier_displaced'
     inout_files   = 'inout_files/'
     path_to_files = inout_files + model_name
 
@@ -38,9 +42,14 @@ def main():
                             inout_files)
     
     # Generate base model
-    model.water_inclusion()
+    water_inclusion_pos = model.water_inclusion()
     model.generate_base_glacier()
 
+    # Displace inclusions
+    model_dis = InclusionDisplacer(model, water_inclusion_pos)
+    model_dis.displace(1, 3.5)
+
+    # Determine measurement step
     measurement_number = 100 # number of traces
     antenna_spacing    = 4  # Change antenna spacing in [m] here
     measurement_step   = model.calculate_measurment_step(measurement_number, 
@@ -57,22 +66,23 @@ def main():
         
     #Plot initial model
     model.plot_initial_model(transceiver1, receiver1)
+    model_dis.plot_displaced_model(transceiver1, receiver1)
 
-    # Call FileService to write files
-    FileService.write_materials_file(model.path + model.name + '_materials', 
-                                    model.materials)
+    # # Call FileService to write files
+    # FileService.write_materials_file(model.path + model.name + '_materials', 
+    #                                 model.materials)
     
-    FileService.write_h5_file(model.path + model.name + '_h5', 
-                            model)
+    # FileService.write_h5_file(model.path + model.name + '_h5', 
+    #                         model)
 
-    FileService.write_input_file(model, 
-                                path_to_files, 
-                                path_to_files + '_materials', 
-                                path_to_files + '_h5', 
-                                25e6,   # Change frequency in Hz here
-                                transceiver1, receiver1, 
-                                measurement_step, 
-                                1000e-9) # Change time window in s here
+    # FileService.write_input_file(model, 
+    #                             path_to_files, 
+    #                             path_to_files + '_materials', 
+    #                             path_to_files + '_h5', 
+    #                             25e6,   # Change frequency in Hz here
+    #                             transceiver1, receiver1, 
+    #                             measurement_step, 
+    #                             1000e-9) # Change time window in s here
     
     # Run simulation
     if args.run:

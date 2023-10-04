@@ -46,9 +46,11 @@ class SimulationModel:
         float: the measurement step
         """
 
-        nx = self.model.shape[0]
-        nx_buffered = nx - 2*5/self.discrete[0] # buffer of 5 meters
-        return round((nx_buffered * self.discrete[0] - antenna_spacing) / number_of_measurements, 2)
+        right_buffer = 5. # buffer of 5 meters on the right side
+        left_buffer = 5. # buffer of 5 meters on the left side
+
+        nx_buffered = self.model.shape[0] - (right_buffer + left_buffer + antenna_spacing)/self.discrete[0]
+        return round(nx_buffered * self.discrete[0] / number_of_measurements, 2)
 
     def generate_base_glacier(self):
         """
@@ -66,8 +68,8 @@ class SimulationModel:
         self.model[:, :, round(105.0/self.discrete[2]):nz] = 2 # Bedrock = 2
 
     def water_inclusion(self, 
-                        liquid_water_content=0.1, 
-                        max_inclusion_radius=0.2):
+                        liquid_water_content=0.01, 
+                        max_inclusion_radius=0.5):
         """
         Adds water inclusions to the glacier model.
         
@@ -75,6 +77,9 @@ class SimulationModel:
         liquid_water_content (float): liquid water content in %.
         max_inclusion_radius (float): maximum radius of water inclusion in meters.
         """
+
+        water_inclusion_pos = [] # Initialize a list to store the water inclusion positions
+        i = 0 # Initialize a counter
 
         nx = int(self.x_size / self.discrete[0])
         ny = int(self.y_size / self.discrete[1])
@@ -101,6 +106,9 @@ class SimulationModel:
                 z_center_pixel = np.random.rand() * nz # Randomly select a pixel in the z direction
                 radius = np.random.rand() * max_inclusion_radius # Randomly select a radius
 
+                # Store the water inclusion x, y and radius in a list
+                water_inclusion_pos.append([x_center_pixel, z_center_pixel, radius])
+
                 # This will create circles of water inclusions in the x-z plane
                 water_matrix = np.logical_or(water_matrix, ((rows - z_center_pixel) ** 2 + (cols - x_center_pixel) ** 2 <= (radius / self.discrete[2]) ** 2))
                 
@@ -110,10 +118,15 @@ class SimulationModel:
 
                 pbar.update(round(new_liquid_content, 5)) # Update the progress bar
 
+                i += 1 # Update the counter
+        
+        print('Total liquid content: ', round(total_liquid_content, 3), '%')
+
         # Update the model to include the water inclusions
         for i in range(nz):
             self.model[water_matrix[i], :, i] = 3  # Assuming that water is represented by the value 3 in the model
 
+        return np.array([water_inclusion_pos])
 
     def plot_initial_model(self, transceiver, receiver):
         """
