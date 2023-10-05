@@ -1,4 +1,3 @@
-from scipy.signal import windows
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -6,6 +5,14 @@ from tqdm import tqdm
 class InclusionDisplacer:
     
     def __init__(self, original_model, water_inclusion_pos):
+        """
+        Initialize the InclusionDisplacer class.
+
+        Parameters:
+        - original_model: The original model.
+        - water_inclusion_pos: The position of the water inclusions.
+        """
+
         self.original_model = np.copy(original_model.model)
         self.water_inclusion_pos = np.copy(water_inclusion_pos)
         self.new_water_inclusion_pos = np.copy(water_inclusion_pos)
@@ -24,13 +31,35 @@ class InclusionDisplacer:
         self.displaced_model = np.zeros(self.original_model.shape)
 
     def gausswin(self, N, alpha, shift=0):
-        """ Gaussian window function with an optional shift. """
-        n = np.arange(0, N) - (N - 1) / 2 - shift
-        w = np.exp(-(1/2) * (alpha * n / ((N - 1) / 2))**2)
-        return w
+        """ 
+        Gaussian window function with an optional shift.
+        
+        Parameters:
+        - N: Length of the window.
+        - alpha: Parameter of the Gaussian window.
+        - shift: Shift of the Gaussian window.
+
+        Returns:
+        - w: Gaussian window.
+        """
+        n = np.arange(0, N) - (N - 1) / 2 - shift 
+        window = np.exp(-(1/2) * (alpha * n / ((N - 1) / 2))**2)
+        return window
     
     def exponential_field(self, X, Z, alpha, x0=None, z0=None):
-        """ Exponential field function. """
+        """ 
+        Exponential field function. 
+        
+        Parameters:
+        - X: x coordinate.
+        - Z: z coordinate.
+        - alpha: Parameter of the exponential field.
+        - x0: x coordinate of the center of the exponential field.
+        - z0: z coordinate of the center of the exponential field.
+        
+        Returns:
+        - Exponential field.
+        """
         if x0 is None:
             x0 = self.x_size / 2
         if z0 is None:
@@ -39,7 +68,16 @@ class InclusionDisplacer:
         return np.exp(-alpha * np.sqrt((X - x0)**2 + (Z - z0)**2))
 
     def displace_inclusions(self, lambda_val, alpha):
-        """ Displace the inclusions based on a repulsive Gaussian field. """
+        """ 
+        Displace the inclusions based on a repulsive Gaussian field. 
+        
+        Parameters:
+        - lambda_val: Displacement parameter.
+        - alpha: Gaussian window parameter.
+
+        Returns:
+        None
+        """
         
         nx = int(self.x_size / self.dx)
         nz = int(self.z_size / self.dz) 
@@ -72,6 +110,16 @@ class InclusionDisplacer:
             self.new_water_inclusion_pos[idx] = [new_x, new_z, radius]
 
     def apply_inclusions(self):
+        """
+        Apply the inclusions to the model.
+
+        Parameters:
+        None
+
+        Returns:
+        None
+        """
+
         nx = int(self.x_size / self.dz)
         ny = int(self.y_size / self.dy)
         nz = int(self.z_size / self.dx)
