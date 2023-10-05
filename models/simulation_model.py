@@ -68,8 +68,8 @@ class SimulationModel:
         self.model[:, :, round(105.0/self.discrete[2]):nz] = 2 # Bedrock = 2
 
     def water_inclusion(self, 
-                        liquid_water_content=0.01, 
-                        max_inclusion_radius=0.5):
+                        liquid_water_content=1.0, 
+                        max_inclusion_radius=1):
         """
         Adds water inclusions to the glacier model.
         
@@ -126,7 +126,7 @@ class SimulationModel:
         for i in range(nz):
             self.model[water_matrix[i], :, i] = 3  # Assuming that water is represented by the value 3 in the model
 
-        return np.array([water_inclusion_pos])
+        return np.array(water_inclusion_pos)
 
     def plot_initial_model(self, transceiver, receiver):
         """
@@ -154,5 +154,5 @@ class SimulationModel:
         plt.ylabel('depth [m]')
         plt.xlabel('distance [m]')
         plt.title(self.name)
-        plt.savefig(self.path+'/figures/'+self.name+'.png', dpi=300)
+        plt.savefig(self.path+'/figures/'+self.name+'.png')
         plt.close()        

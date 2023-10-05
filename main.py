@@ -47,7 +47,7 @@ def main():
 
     # Displace inclusions
     model_dis = InclusionDisplacer(model, water_inclusion_pos)
-    model_dis.displace(1, 3.5)
+    model_dis.displace()
 
     # Determine measurement step
     measurement_number = 100 # number of traces
@@ -55,18 +55,19 @@ def main():
     measurement_step   = model.calculate_measurment_step(measurement_number, 
                                                         antenna_spacing) # Change antenna spacing in m here
     
-    # Add antenna positions
-    transceiver1 = [5, # 25 cells of buffer (20 minimum)    
-                    0, # It is a 2D model, so y = 0
-                    4.5] # 0.5 cm above the glacier surface
+    # # Add antenna positions
+    # transceiver1 = [5, # 25 cells of buffer (20 minimum)    
+    #                 0, # It is a 2D model, so y = 0
+    #                 4.5] # 0.5 cm above the glacier surface
     
-    receiver1    = [5 + antenna_spacing, # 25 cells of buffer (20 minimum)
-                    0, # It is a 2D model, so y = 0
-                    4.5] # 0.5 cm above the glacier surface
-        
-    #Plot initial model
-    model.plot_initial_model(transceiver1, receiver1)
-    model_dis.plot_displaced_model(transceiver1, receiver1)
+    # receiver1    = [5 + antenna_spacing, # 25 cells of buffer (20 minimum)
+    #                 0, # It is a 2D model, so y = 0
+    #                 4.5] # 0.5 cm above the glacier surface
+
+    # #Plot initial model
+    # print("Producing plots...")
+    # model.plot_initial_model(transceiver1, receiver1)
+    # model_dis.plot_displaced_model(transceiver1, receiver1)
 
     # # Call FileService to write files
     # FileService.write_materials_file(model.path + model.name + '_materials', 
@@ -95,6 +96,8 @@ def main():
         plot_profile = PlotProfile(model.path + model.name + '_merged.out', 'Ey')
         plot_profile.get_output_data()
         plot_profile.plot()
+
+    print('Done!')
 
 if __name__ == "__main__":
     main()

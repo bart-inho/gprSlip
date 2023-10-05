@@ -10,3 +10,5 @@ inout_files/
 *.out
 *.png
 *.m
+test.py
+test2.py
