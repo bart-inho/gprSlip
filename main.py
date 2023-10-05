@@ -55,35 +55,35 @@ def main():
     measurement_step   = model.calculate_measurment_step(measurement_number, 
                                                         antenna_spacing) # Change antenna spacing in m here
     
-    # # Add antenna positions
-    # transceiver1 = [5, # 25 cells of buffer (20 minimum)    
-    #                 0, # It is a 2D model, so y = 0
-    #                 4.5] # 0.5 cm above the glacier surface
+    # Add antenna positions
+    transceiver1 = [5, # 25 cells of buffer (20 minimum)    
+                    0, # It is a 2D model, so y = 0
+                    4.5] # 0.5 cm above the glacier surface
     
-    # receiver1    = [5 + antenna_spacing, # 25 cells of buffer (20 minimum)
-    #                 0, # It is a 2D model, so y = 0
-    #                 4.5] # 0.5 cm above the glacier surface
+    receiver1    = [5 + antenna_spacing, # 25 cells of buffer (20 minimum)
+                    0, # It is a 2D model, so y = 0
+                    4.5] # 0.5 cm above the glacier surface
 
-    # #Plot initial model
-    # print("Producing plots...")
-    # model.plot_initial_model(transceiver1, receiver1)
-    # model_dis.plot_displaced_model(transceiver1, receiver1)
+    #Plot initial model
+    print("Producing plots...")
+    model.plot_initial_model(transceiver1, receiver1)
+    model_dis.plot_displaced_model(transceiver1, receiver1)
 
-    # # Call FileService to write files
-    # FileService.write_materials_file(model.path + model.name + '_materials', 
-    #                                 model.materials)
+    # Call FileService to write files
+    FileService.write_materials_file(model.path + model.name + '_materials', 
+                                    model.materials)
     
-    # FileService.write_h5_file(model.path + model.name + '_h5', 
-    #                         model)
+    FileService.write_h5_file(model.path + model.name + '_h5', 
+                            model)
 
-    # FileService.write_input_file(model, 
-    #                             path_to_files, 
-    #                             path_to_files + '_materials', 
-    #                             path_to_files + '_h5', 
-    #                             25e6,   # Change frequency in Hz here
-    #                             transceiver1, receiver1, 
-    #                             measurement_step, 
-    #                             1000e-9) # Change time window in s here
+    FileService.write_input_file(model, 
+                                path_to_files, 
+                                path_to_files + '_materials', 
+                                path_to_files + '_h5', 
+                                25e6,   # Change frequency in Hz here
+                                transceiver1, receiver1, 
+                                measurement_step, 
+                                1000e-9) # Change time window in s here
     
     # Run simulation
     if args.run:
