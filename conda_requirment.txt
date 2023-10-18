@@ -2,6 +2,8 @@
 mpi4py
 openmpi
 cuda-nvcc
+tqdm
+numpy
 
 # Set environment variables
 export CPLUS_INCLUDE_PATH=/usr/local/cuda/include:${CPLUS_INCLUDE_PATH}

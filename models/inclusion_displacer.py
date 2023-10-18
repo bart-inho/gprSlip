@@ -144,6 +144,19 @@ class InclusionDisplacer:
         self.displaced_model[:, :, 0:round(5.0/self.dz)] = 0 # Freespace = 0
         self.displaced_model[:, :, round(105.0/self.dz):nz] = 2 # Bedrock = 2
 
+
+    def displace(self, lambda_val=3e6, alpha=3):
+        """
+        Displace the inclusions in the model and store the result in self.displaced_model.
+        
+        Parameters:
+        - lambda_val: Displacement parameter.
+        - alpha: Gaussian window parameter.
+        """
+        self.displace_inclusions(lambda_val, alpha)
+        self.apply_inclusions() 
+        self.plot_displacement()   
+
     def plot_displacement(self):
         """
         Plot the displacement of the inclusions.
@@ -169,18 +182,6 @@ class InclusionDisplacer:
         plt.title(self.name + ' displacement')
         plt.savefig(self.path+'/figures/'+self.name+'_displacement.png')
         plt.close()
-
-    def displace(self, lambda_val=3e6, alpha=3):
-        """
-        Displace the inclusions in the model and store the result in self.displaced_model.
-        
-        Parameters:
-        - lambda_val: Displacement parameter.
-        - alpha: Gaussian window parameter.
-        """
-        self.displace_inclusions(lambda_val, alpha)
-        self.apply_inclusions() 
-        self.plot_displacement()   
 
     def plot_displaced_model(self, transceiver, receiver):
         """
