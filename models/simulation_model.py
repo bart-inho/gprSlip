@@ -69,7 +69,7 @@ class SimulationModel:
 
     def water_inclusion(self, 
                         liquid_water_content=.1, 
-                        max_inclusion_radius=1):
+                        max_inclusion_radius=.1):
         """
         Adds water inclusions to the glacier model.
         

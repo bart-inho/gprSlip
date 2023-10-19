@@ -66,8 +66,57 @@ class InclusionDisplacer:
             z0 = self.z_size
 
         return np.exp(-alpha * np.sqrt((X - x0)**2 + (Z - z0)**2))
+    
 
-    def displace_inclusions(self, lambda_val, alpha):
+    def displace_inclusions_lin(self, lambda_val, alpha):
+        """ 
+        Displace the inclusions based on a repulsive Gaussian field.
+        
+        Parameters:
+        - lambda_val: Displacement parameter.
+        - alpha: Gaussian window parameter.
+
+        Returns:
+        None
+        """
+        
+        # Define the grid
+        nx = int(self.x_size / self.dx)
+        nz = int(self.z_size / self.dz)
+        
+        xpos = np.linspace(0, self.x_size, nx)
+        zpos = np.linspace(0, self.z_size, nz)
+        
+        # Create the Gaussian window displacement for both axes
+        new_xpos = xpos + lambda_val * self.gausswin(nx, alpha)
+        zvec_func = lambda_val * self.gausswin(2 * nz, alpha)
+        new_zpos = zpos - zvec_func[:nz]
+        
+        # Compute change matrices
+        xchange_mat = np.outer(new_xpos - xpos, new_zpos - zpos)
+        zchange_mat = xchange_mat.copy()  # As per the MATLAB code provided
+
+        print(self.water_inclusion_pos)
+
+        for idx, (x, z, radius) in enumerate(self.water_inclusion_pos):
+            # Find the nearest grid index
+            ix, iz = int(x), int(z)  # Adjusted to consider grid spacing
+            
+            # Displacement proportional to gradient (i.e., slope)
+            disp_x = xchange_mat[ix, iz]
+            disp_z = zchange_mat[ix, iz]
+
+            # Update positions
+            new_x = x + disp_x
+            new_z = z + disp_z
+
+            print('displacement on x = ', disp_x)
+            print('displacement on z = ', disp_z)
+
+            self.new_water_inclusion_pos[idx] = [new_x, new_z, radius]
+
+
+    def displace_inclusions_grad(self, lambda_val, alpha):
         """ 
         Displace the inclusions based on a repulsive Gaussian field. 
         
@@ -85,12 +134,12 @@ class InclusionDisplacer:
         # Creating the 2D Gaussian hill in the middle of the domain
         gaussian_hill = self.gausswin(nx, alpha)[:, np.newaxis] * self.gausswin(nz, alpha, shift=nz/2)
 
-        # plt.imshow(gaussian_hill.T)
-        # plt.title("Gaussian hill")
-        # plt.colorbar()
-        # plt.xlabel("nx")
-        # plt.ylabel("nz")
-        # plt.show()
+        plt.imshow(gaussian_hill.T)
+        plt.title("Gaussian hill")
+        plt.colorbar()
+        plt.xlabel("nx")
+        plt.ylabel("nz")
+        plt.show()
 
         # Compute the gradients of the Gaussian hill, these give us the direction of the "push"
         gx, gz = np.gradient(gaussian_hill)
@@ -145,7 +194,7 @@ class InclusionDisplacer:
         self.displaced_model[:, :, round(105.0/self.dz):nz] = 2 # Bedrock = 2
 
 
-    def displace(self, lambda_val=3e6, alpha=3):
+    def displace(self, lambda_val=12, alpha=3.5):
         """
         Displace the inclusions in the model and store the result in self.displaced_model.
         
@@ -153,7 +202,8 @@ class InclusionDisplacer:
         - lambda_val: Displacement parameter.
         - alpha: Gaussian window parameter.
         """
-        self.displace_inclusions(lambda_val, alpha)
+        # self.displace_inclusions_grad(lambda_val, alpha)
+        self.displace_inclusions_lin(lambda_val, alpha)
         self.apply_inclusions() 
         self.plot_displacement()   
 
@@ -170,15 +220,15 @@ class InclusionDisplacer:
 
         plt.figure(figsize=(10, 10))
         plt.plot(self.water_inclusion_pos[:, 0]*self.dx, self.water_inclusion_pos[:, 1]*self.dy, 'o')
-        plt.plot(self.new_water_inclusion_pos[:, 0]*self.dx, self.new_water_inclusion_pos[:, 1]*self.dy, 'o')
-        plt.plot(self.x_size/2, self.z_size, 'x')
+        plt.plot(self.new_water_inclusion_pos[:, 0]*self.dx, self.new_water_inclusion_pos[:, 1]*self.dy, 'x')
+        plt.plot(self.x_size/2, self.z_size, 'v', markersize=10)
         plt.gca().invert_yaxis()
         plt.gca().set_aspect('equal')
         plt.xlim(0, self.x_size)
         plt.ylim(self.z_size, 0)
-        plt.ylabel('depth [ ]')
-        plt.xlabel('distance [ ]')
-        plt.legend(['Original', 'Displaced'])
+        plt.ylabel('depth [m]')
+        plt.xlabel('distance [m]')
+        plt.legend(['Original', 'Displaced', 'Source'])
         plt.title(self.name + ' displacement')
         plt.savefig(self.path+'/figures/'+self.name+'_displacement.png')
         plt.close()
