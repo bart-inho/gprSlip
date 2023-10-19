@@ -17,6 +17,8 @@ class InclusionDisplacer:
         self.water_inclusion_pos = np.copy(water_inclusion_pos)
         self.new_water_inclusion_pos = np.copy(water_inclusion_pos)
 
+        self.discrete = original_model.discrete
+
         self.dx = original_model.discrete[0]
         self.dy = original_model.discrete[1]
         self.dz = original_model.discrete[2]
@@ -25,10 +27,10 @@ class InclusionDisplacer:
         self.y_size = original_model.y_size
         self.z_size = original_model.z_size
 
-        self.name = original_model.name
+        self.name = original_model.name+'_dis'
         self.path = original_model.path
 
-        self.displaced_model = np.zeros(self.original_model.shape)
+        self.model = np.zeros(self.original_model.shape)
 
     def gausswin(self, N, alpha, shift=0):
         """ 
@@ -167,8 +169,8 @@ class InclusionDisplacer:
         nz = round(self.z_size / self.dx)
 
         # Initialize the model
-        self.displaced_model = np.zeros((nx, ny, nz), dtype=int)
-        self.displaced_model[:, :, round(5.0 / self.dz):nz] = 1 # Glacier = 1
+        self.model = np.zeros((nx, ny, nz), dtype=int)
+        self.model[:, :, round(5.0 / self.dz):nz] = 1 # Glacier = 1
         
         # Create a grid for i and j
         i, j = np.meshgrid(np.arange(nx), np.arange(nz), indexing='ij')
@@ -180,15 +182,15 @@ class InclusionDisplacer:
             # Reshape the mask
             mask_reshaped = mask[:, np.newaxis, :]
 
-            # Use the reshaped mask to update the displaced_model
-            self.displaced_model[mask_reshaped] = 3
+            # Use the reshaped mask to update the model
+            self.model[mask_reshaped] = 3
 
-        self.displaced_model[:, :, 0:round(5.0/self.dz)] = 0 # Freespace = 0
-        self.displaced_model[:, :, round(105.0/self.dz):nz] = 2 # Bedrock = 2
+        self.model[:, :, 0:round(5.0/self.dz)] = 0 # Freespace = 0
+        self.model[:, :, round(105.0/self.dz):nz] = 2 # Bedrock = 2
 
     def displace(self, lambda_val=8, alpha=3.5):
         """
-        Displace the inclusions in the model and store the result in self.displaced_model.
+        Displace the inclusions in the model and store the result in self.model.
         
         Parameters:
         - lambda_val: Displacement parameter.
@@ -223,7 +225,7 @@ class InclusionDisplacer:
         plt.xlabel("nx")
         plt.ylabel("nz")
         plt.tight_layout()
-        plt.savefig(self.path+'figures/'+self.name+'_displacement_matrices.png')
+        plt.savefig(self.path+'figures/'+self.name+'_matrices.png')
         plt.close()
 
     def plot_displacement(self):
@@ -246,9 +248,9 @@ class InclusionDisplacer:
         plt.ylim(self.z_size, 0)
         plt.ylabel('depth [m]')
         plt.xlabel('distance [m]')
-        plt.legend(['Original', 'Displaced', 'Source'])
-        plt.title(self.name + ' displacement')
-        plt.savefig(self.path+'/figures/'+self.name+'_displacement.png')
+        plt.legend(['Displaced', 'Original', 'Source'])
+        plt.title(self.name)
+        plt.savefig(self.path+'/figures/'+self.name+'.png')
         plt.close()
 
     def plot_displaced_model(self, transceiver, receiver):
@@ -270,7 +272,7 @@ class InclusionDisplacer:
         X, Y = np.meshgrid(np.linspace(0, self.x_size, nx), 
                         np.linspace(0, self.z_size, nz))
         
-        plt.pcolormesh(X, Y, self.displaced_model[:, round(transceiver[1]*self.dy), :].T)
+        plt.pcolormesh(X, Y, self.model[:, round(transceiver[1]*self.dy), :].T)
         plt.scatter(transceiver[0], transceiver[2])
         plt.scatter(receiver[0], receiver[2])
         plt.gca().invert_yaxis()
@@ -279,8 +281,8 @@ class InclusionDisplacer:
         plt.clim(0, 3)
         plt.ylabel('depth [m]')
         plt.xlabel('distance [m]')
-        plt.title(self.name + ' displaced')
-        plt.savefig(self.path+'/figures/'+self.name+'_displaced.png')
+        plt.title(self.name)
+        plt.savefig(self.path+'/figures/'+self.name+'.png')
         plt.close() 
 
     def write_displacement_textfile(self, disp_x, disp_z):
@@ -295,7 +297,7 @@ class InclusionDisplacer:
         None
         """
         # Write the displacement to a textfile
-        with open(self.path + self.name + '_displacement.txt', 'w') as f:
+        with open(self.path + self.name+'.txt', 'w') as f:
             f.write('x, z, disp_x, disp_z\n')
             for i in range(len(self.water_inclusion_pos)):
                 f.write(str(self.water_inclusion_pos[i][0]) + ', ' + str(self.water_inclusion_pos[i][1]) + ', ' + str(disp_x[i]) + ', ' + str(disp_z[i]) + '\n')

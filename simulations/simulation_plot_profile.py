@@ -77,7 +77,7 @@ class PlotProfile:
 
         cb = plt.colorbar()
         # Add colorbar limits
-        plt.clim(-1e-2, 1e-2)
+        plt.clim(-2, 2)
         if 'E' in self.rx_component:
             cb.set_label('Field strength [V/m]')
         elif 'H' in self.rx_component:

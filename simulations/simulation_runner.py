@@ -18,7 +18,8 @@ class SimulationRunner:
         None
         """
         self.simulation_model = simulation_model
-
+        print(simulation_model.path)
+        print(simulation_model.name)
     def run_simulation(self, measurement_number):
         """
         Run the gprMax simulation using gprMax API. GPU number and threads are hardcoded.
@@ -31,7 +32,7 @@ class SimulationRunner:
         None
         """
 
-        api(self.simulation_model.path + self.simulation_model.name + '.in', mpi = 6, gpu = [0, 1, 2, 3, 4, 5], n = measurement_number)
+        api(self.simulation_model.path + self.simulation_model.name + '.in', mpi = 8, gpu = [0, 1, 2, 3, 4, 5, 6, 7], n = measurement_number)
     
     def merge_files(self, remove_files):
         """

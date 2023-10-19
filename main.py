@@ -21,8 +21,8 @@ def main():
     InitializeFolders.check_and_create_directories()
 
     # Initialize folders paths
-    model_name    = 'test_temperate_glacier'
-    model_name_displaced = 'test_temperate_glacier_displaced'
+    model_name    = 'temp_ice'
+    model_name_displaced = 'temp_ice_dis'
     inout_files   = 'inout_files/'
     path_to_files = inout_files + model_name
 
@@ -33,6 +33,7 @@ def main():
     water     = Material(80. , 5.e-4   , 1., 0., 'water') # Water
 
     dis = 0.05 # Discretisation in m
+    time_window = 1.5e-6 # Time window in s
 
     # Generate model
     model = SimulationModel(model_name, 
@@ -73,8 +74,7 @@ def main():
     FileService.write_materials_file(model.path + model.name + '_materials', 
                                     model.materials)
     
-    FileService.write_h5_file(model.path + model.name + '_h5', 
-                            model)
+    FileService.write_h5_file(model.path + model.name + '_h5', model)
 
     FileService.write_input_file(model, 
                                 path_to_files, 
@@ -83,7 +83,7 @@ def main():
                                 25e6,   # Change frequency in Hz here
                                 transceiver1, receiver1, 
                                 measurement_step, 
-                                1000e-9) # Change time window in s here
+                                time_window) # Change time window in s here
     
     # Run simulation
     if args.run:
@@ -96,6 +96,35 @@ def main():
         plot_profile = PlotProfile(model.path + model.name + '_merged.out', 'Ey')
         plot_profile.get_output_data()
         plot_profile.plot()
+
+    # Adjust the file names for the displaced model
+    path_to_files_displaced = inout_files + model_name_displaced
+
+    # Write the files for the displaced model
+    FileService.write_materials_file(model_dis.path + model_name_displaced + '_materials', model.materials)
+    
+    FileService.write_h5_file(model_dis.path + model_name_displaced + '_h5', model_dis)
+
+    FileService.write_input_file(model_dis, 
+                                path_to_files_displaced, 
+                                path_to_files_displaced + '_materials', 
+                                path_to_files_displaced + '_h5', 
+                                25e6,   # Change frequency in Hz here
+                                transceiver1, receiver1, 
+                                measurement_step, 
+                                time_window) # Change time window in s here
+
+    # Run the displaced model simulation
+    if args.run:
+        simulation_runner_displaced = SimulationRunner(model_dis)
+        simulation_runner_displaced.run_simulation(measurement_number)
+        simulation_runner_displaced.merge_files(True)
+
+    # Plot the displaced model
+    if args.plot:
+        plot_profile_displaced = PlotProfile(model_dis.path + model_name_displaced + '_merged.out', 'Ey')
+        plot_profile_displaced.get_output_data()
+        plot_profile_displaced.plot()
 
     print('Done!')
 
