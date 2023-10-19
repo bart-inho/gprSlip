@@ -81,9 +81,9 @@ class SimulationModel:
         water_inclusion_pos = [] # Initialize a list to store the water inclusion positions
         i = 0 # Initialize a counter
 
-        nx = int(self.x_size / self.discrete[0])
-        ny = int(self.y_size / self.discrete[1])
-        nz = int(self.z_size / self.discrete[2])
+        nx = round(self.x_size / self.discrete[0])
+        ny = round(self.y_size / self.discrete[1])
+        nz = round(self.z_size / self.discrete[2])
 
         # Initialize the model
         self.model = np.zeros((nx, ny, nz), dtype=int)
@@ -141,8 +141,12 @@ class SimulationModel:
         None
         """
 
-        X, Y = np.meshgrid(np.arange(0, self.x_size, self.discrete[0]), 
-                        np.arange(0, self.z_size, self.discrete[2]))
+        nx = round(self.x_size / self.discrete[0])
+        nz = round(self.z_size / self.discrete[2])
+
+        # Create an array for X and Y with appropriate shapes
+        X, Y = np.meshgrid(np.linspace(0, self.x_size, nx), 
+                        np.linspace(0, self.z_size, nz))
         
         plt.pcolormesh(X, Y, self.model[:, round(transceiver[1]*self.discrete[1]), :].T)
         plt.scatter(transceiver[0], transceiver[2])

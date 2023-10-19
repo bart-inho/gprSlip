@@ -32,7 +32,7 @@ def main():
     bedrock   = Material(6. , 1.e-3, 1., 0., 'bedrock'  ) # Bedrock
     water     = Material(80. , 5.e-4   , 1., 0., 'water') # Water
 
-    dis = 0.01
+    dis = 0.05 # Discretisation in m
 
     # Generate model
     model = SimulationModel(model_name, 
@@ -50,7 +50,7 @@ def main():
     model_dis.displace()
 
     # Determine measurement step
-    measurement_number = 100 # number of traces
+    measurement_number = 200 # number of traces
     antenna_spacing    = 4  # Change antenna spacing in [m] here
     measurement_step   = model.calculate_measurment_step(measurement_number, 
                                                         antenna_spacing) # Change antenna spacing in m here

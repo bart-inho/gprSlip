@@ -66,7 +66,6 @@ class InclusionDisplacer:
             z0 = self.z_size
 
         return np.exp(-alpha * np.sqrt((X - x0)**2 + (Z - z0)**2))
-    
 
     def displace_inclusions_lin(self, lambda_val, alpha):
         """ 
@@ -79,10 +78,9 @@ class InclusionDisplacer:
         Returns:
         None
         """
-        
         # Define the grid
-        nx = int(self.x_size / self.dx)
-        nz = int(self.z_size / self.dz)
+        nx = round(self.x_size / self.dx)
+        nz = round(self.z_size / self.dz)
         
         xpos = np.linspace(0, self.x_size, nx)
         zpos = np.linspace(0, self.z_size, nz)
@@ -96,7 +94,7 @@ class InclusionDisplacer:
         xchange_mat = np.outer(new_xpos - xpos, new_zpos - zpos)
         zchange_mat = xchange_mat.copy()  # As per the MATLAB code provided
 
-        print(self.water_inclusion_pos)
+        self.plot_displacement_matrix(xchange_mat, zchange_mat)
 
         for idx, (x, z, radius) in enumerate(self.water_inclusion_pos):
             # Find the nearest grid index
@@ -110,11 +108,7 @@ class InclusionDisplacer:
             new_x = x + disp_x
             new_z = z + disp_z
 
-            print('displacement on x = ', disp_x)
-            print('displacement on z = ', disp_z)
-
             self.new_water_inclusion_pos[idx] = [new_x, new_z, radius]
-
 
     def displace_inclusions_grad(self, lambda_val, alpha):
         """ 
@@ -127,9 +121,8 @@ class InclusionDisplacer:
         Returns:
         None
         """
-        
-        nx = int(self.x_size / self.dx)
-        nz = int(self.z_size / self.dz) 
+        nx = round(self.x_size / self.dx)
+        nz = round(self.z_size / self.dz) 
             
         # Creating the 2D Gaussian hill in the middle of the domain
         gaussian_hill = self.gausswin(nx, alpha)[:, np.newaxis] * self.gausswin(nz, alpha, shift=nz/2)
@@ -156,6 +149,7 @@ class InclusionDisplacer:
             new_x = x + disp_x
             new_z = z + disp_z
 
+            self.write_displacement_textfile(disp_x, disp_z)
             self.new_water_inclusion_pos[idx] = [new_x, new_z, radius]
 
     def apply_inclusions(self):
@@ -168,13 +162,12 @@ class InclusionDisplacer:
         Returns:
         None
         """
-
-        nx = int(self.x_size / self.dz)
-        ny = int(self.y_size / self.dy)
-        nz = int(self.z_size / self.dx)
+        nx = round(self.x_size / self.dz)
+        ny = round(self.y_size / self.dy)
+        nz = round(self.z_size / self.dx)
 
         # Initialize the model
-        self.displaced_model = np.zeros((nx, ny, nz))
+        self.displaced_model = np.zeros((nx, ny, nz), dtype=int)
         self.displaced_model[:, :, round(5.0 / self.dz):nz] = 1 # Glacier = 1
         
         # Create a grid for i and j
@@ -193,8 +186,7 @@ class InclusionDisplacer:
         self.displaced_model[:, :, 0:round(5.0/self.dz)] = 0 # Freespace = 0
         self.displaced_model[:, :, round(105.0/self.dz):nz] = 2 # Bedrock = 2
 
-
-    def displace(self, lambda_val=12, alpha=3.5):
+    def displace(self, lambda_val=8, alpha=3.5):
         """
         Displace the inclusions in the model and store the result in self.displaced_model.
         
@@ -205,7 +197,34 @@ class InclusionDisplacer:
         # self.displace_inclusions_grad(lambda_val, alpha)
         self.displace_inclusions_lin(lambda_val, alpha)
         self.apply_inclusions() 
-        self.plot_displacement()   
+        self.plot_displacement() 
+
+    def plot_displacement_matrix(self, xchange_mat, zchange_mat):
+        """
+        Plot the displacement matrix.
+
+        Parameters:
+        None
+
+        Returns:
+        None
+        """
+        #Subplot the displacement matrix xchange_mat and zchange_mat
+        plt.subplot(1, 2, 1)
+        plt.imshow(xchange_mat.T*self.dx)
+        plt.title("xchange_mat")
+        plt.colorbar()
+        plt.xlabel("nx")
+        plt.ylabel("nz")
+        plt.subplot(1, 2, 2)
+        plt.imshow(zchange_mat.T*self.dz)
+        plt.title("zchange_mat")
+        plt.colorbar()
+        plt.xlabel("nx")
+        plt.ylabel("nz")
+        plt.tight_layout()
+        plt.savefig(self.path+'figures/'+self.name+'_displacement_matrices.png')
+        plt.close()
 
     def plot_displacement(self):
         """
@@ -217,7 +236,6 @@ class InclusionDisplacer:
         Returns:
         None
         """
-
         plt.figure(figsize=(10, 10))
         plt.plot(self.water_inclusion_pos[:, 0]*self.dx, self.water_inclusion_pos[:, 1]*self.dy, 'o')
         plt.plot(self.new_water_inclusion_pos[:, 0]*self.dx, self.new_water_inclusion_pos[:, 1]*self.dy, 'x')
@@ -245,9 +263,12 @@ class InclusionDisplacer:
         Returns:
         None
         """
+        nx = round(self.x_size / self.dx)
+        nz = round(self.z_size / self.dz)
 
-        X, Y = np.meshgrid(np.arange(0, self.x_size, self.dx), 
-                        np.arange(0, self.z_size, self.dz))
+        # Create an array for X and Y with appropriate shapes
+        X, Y = np.meshgrid(np.linspace(0, self.x_size, nx), 
+                        np.linspace(0, self.z_size, nz))
         
         plt.pcolormesh(X, Y, self.displaced_model[:, round(transceiver[1]*self.dy), :].T)
         plt.scatter(transceiver[0], transceiver[2])
@@ -261,3 +282,21 @@ class InclusionDisplacer:
         plt.title(self.name + ' displaced')
         plt.savefig(self.path+'/figures/'+self.name+'_displaced.png')
         plt.close() 
+
+    def write_displacement_textfile(self, disp_x, disp_z):
+        """
+        Write the displacement to a textfile.
+
+        Parameters:
+        - disp_x: The displacement in the x direction.
+        - disp_z: The displacement in the z direction.
+
+        Returns:
+        None
+        """
+        # Write the displacement to a textfile
+        with open(self.path + self.name + '_displacement.txt', 'w') as f:
+            f.write('x, z, disp_x, disp_z\n')
+            for i in range(len(self.water_inclusion_pos)):
+                f.write(str(self.water_inclusion_pos[i][0]) + ', ' + str(self.water_inclusion_pos[i][1]) + ', ' + str(disp_x[i]) + ', ' + str(disp_z[i]) + '\n')
+            f.close()
