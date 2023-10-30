@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import csv
+
 
 class InclusionDisplacer:
     
@@ -90,7 +92,7 @@ class InclusionDisplacer:
         # Create the Gaussian window displacement for both axes
         new_xpos = xpos + lambda_val * self.gausswin(nx, alpha)
         zvec_func = lambda_val * self.gausswin(2 * nz, alpha)
-        new_zpos = zpos - zvec_func[:nz]
+        new_zpos = zpos + zvec_func[:nz]
         
         # Compute change matrices
         xchange_mat = np.outer(new_xpos - xpos, new_zpos - zpos)
@@ -129,13 +131,6 @@ class InclusionDisplacer:
         # Creating the 2D Gaussian hill in the middle of the domain
         gaussian_hill = self.gausswin(nx, alpha)[:, np.newaxis] * self.gausswin(nz, alpha, shift=nz/2)
 
-        plt.imshow(gaussian_hill.T)
-        plt.title("Gaussian hill")
-        plt.colorbar()
-        plt.xlabel("nx")
-        plt.ylabel("nz")
-        plt.show()
-
         # Compute the gradients of the Gaussian hill, these give us the direction of the "push"
         gx, gz = np.gradient(gaussian_hill)
             
@@ -151,7 +146,6 @@ class InclusionDisplacer:
             new_x = x + disp_x
             new_z = z + disp_z
 
-            self.write_displacement_textfile(disp_x, disp_z)
             self.new_water_inclusion_pos[idx] = [new_x, new_z, radius]
 
     def apply_inclusions(self):
@@ -199,7 +193,7 @@ class InclusionDisplacer:
         # self.displace_inclusions_grad(lambda_val, alpha)
         self.displace_inclusions_lin(lambda_val, alpha)
         self.apply_inclusions() 
-        self.plot_displacement() 
+        self.plot_displacement_scatter() 
 
     def plot_displacement_matrix(self, xchange_mat, zchange_mat):
         """
@@ -228,7 +222,7 @@ class InclusionDisplacer:
         plt.savefig(self.path+'figures/'+self.name+'_matrices.png')
         plt.close()
 
-    def plot_displacement(self):
+    def plot_displacement_scatter(self):
         """
         Plot the displacement of the inclusions.
 
@@ -248,10 +242,22 @@ class InclusionDisplacer:
         plt.ylim(self.z_size, 0)
         plt.ylabel('depth [m]')
         plt.xlabel('distance [m]')
-        plt.legend(['Displaced', 'Original', 'Source'])
+        plt.legend(['Original', 'Displaced', 'Source'])
         plt.title(self.name)
-        plt.savefig(self.path+'/figures/'+self.name+'.png')
+        plt.savefig(self.path+'figures/'+self.name+'scatter.png')
         plt.close()
+
+        # save coordinates to csv files
+        np.savetxt(self.path+'coordinates/'+self.name+'_original.csv', 
+                   self.water_inclusion_pos, 
+                   header='x,z,radius',
+                   comments='',
+                   delimiter=',')
+        np.savetxt(self.path+'coordinates/'+self.name+'_displaced.csv', 
+                   self.new_water_inclusion_pos, 
+                   header='new_x,new_z,radius',
+                   comments='',
+                   delimiter=',')
 
     def plot_displaced_model(self, transceiver, receiver):
         """
@@ -283,22 +289,4 @@ class InclusionDisplacer:
         plt.xlabel('distance [m]')
         plt.title(self.name)
         plt.savefig(self.path+'/figures/'+self.name+'.png')
-        plt.close() 
-
-    def write_displacement_textfile(self, disp_x, disp_z):
-        """
-        Write the displacement to a textfile.
-
-        Parameters:
-        - disp_x: The displacement in the x direction.
-        - disp_z: The displacement in the z direction.
-
-        Returns:
-        None
-        """
-        # Write the displacement to a textfile
-        with open(self.path + self.name+'.txt', 'w') as f:
-            f.write('x, z, disp_x, disp_z\n')
-            for i in range(len(self.water_inclusion_pos)):
-                f.write(str(self.water_inclusion_pos[i][0]) + ', ' + str(self.water_inclusion_pos[i][1]) + ', ' + str(disp_x[i]) + ', ' + str(disp_z[i]) + '\n')
-            f.close()
+        plt.close()

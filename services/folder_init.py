@@ -17,3 +17,4 @@ class InitializeFolders:
         None
         """
         Path('inout_files/figures').mkdir(parents=True, exist_ok=True)
+        Path('inout_files/coordinates').mkdir(parents=True, exist_ok=True)
