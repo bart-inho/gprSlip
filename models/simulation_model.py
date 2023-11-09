@@ -52,7 +52,7 @@ class SimulationModel:
         nx_buffered = self.model.shape[0] - (right_buffer + left_buffer + antenna_spacing)/self.discrete[0]
         return round(nx_buffered * self.discrete[0] / number_of_measurements, 2)
 
-    def generate_base_glacier(self):
+    def generate_base_glacier(self, h_freespace=5., h_bedrock=105.):
         """
         Generate base model
 
@@ -64,8 +64,8 @@ class SimulationModel:
         """
 
         nz = int(self.z_size / self.discrete[2])
-        self.model[:, :, 0:round(5.0/self.discrete[2])] = 0 # Freespace = 0
-        self.model[:, :, round(105.0/self.discrete[2]):nz] = 2 # Bedrock = 2
+        self.model[:, :, 0:round(h_freespace/self.discrete[2])] = 0 # Freespace = 0
+        self.model[:, :, round(h_bedrock/self.discrete[2]):nz] = 2 # Bedrock = 2
 
     def include_inclusions_loop(self, nx, nz, max_inclusion_radius, num_inclusions=5000):
         water_matrix = np.zeros((nz, nx), dtype=bool)
@@ -112,7 +112,8 @@ class SimulationModel:
     def water_inclusion(self, 
                         liquid_water_content=0.1, 
                         number_of_inclusions=5000,
-                        max_inclusion_radius=0.05):
+                        max_inclusion_radius=0.05,
+                        h_glacier=5.):
         """
         Adds water inclusions to the glacier model.
         
@@ -130,7 +131,7 @@ class SimulationModel:
 
         # Initialize the model
         self.model = np.zeros((nx, ny, nz), dtype=int)
-        self.model[:, :, round(5.0 / self.discrete[2]):nz] = 1 # Glacier = 1
+        self.model[:, :, round(h_glacier / self.discrete[2]):nz] = 1 # Glacier = 1
 
         # Initiate a matrix to represent water presence (1 for water presence)
         water_matrix = np.zeros((nz, nx), dtype=bool)

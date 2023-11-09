@@ -32,21 +32,43 @@ def main():
     bedrock   = Material(6. , 1.e-3, 1., 0., 'bedrock'  ) # Bedrock
     water     = Material(80. , 5.e-4   , 1., 0., 'water') # Water
 
-    # SET SIMULATION PARAMETERS
+    # SET SIMULATION PARAMETERS =================================================
+
+    # GPRMax parameters
     dis = 0.05 # Discretisation in m
     time_window = 1.5e-6 # Time window in s
     measurement_number = 200 # number of traces
     antenna_spacing    = 4  # Change antenna spacing in [m] here
+    frequency = 25e6 # Frequency in Hz
 
+    # Geometry parameters
+    glacier_length    = 100 # Glacier length in m
+    glacier_thickness = 110 # Glacier thickness in m
+    buffer_antenna = 5 # Buffer on the left and right side of the antenna in m
+    h_antenna = 0.5 # Height of the antenna in m
+
+    # Inclusions parameters
     water_liquid_content = 0.1 # Water liquid content in %
-    number_of_inclusions = 5000 # Number of inclusions
+    number_of_inclusions = 300 # Number of inclusions
     max_radius_inclusions = 0.05 # Maximum radius of inclusions in m
 
     lambda_val = 3.6 # width of the gaussian pulse in m
     alpha = 3.5 # Attenuation in dB/m
+
+    h_freespace = 5. # Height of the freespace in m
+    h_bedrock = 105. # Height of the bedrock in m
+    h_glacier = 5. # Height of the glacier in m
+
+    # Simulation parameters
+    gpu_number = 8 # Number of GPUs to use
+    gpu_set = [0, 1, 2, 3, 4, 5, 6, 7] # GPUs to use
+    merge_file = True # Merge the files after simulation
+
+    # =========================================================================
+
     # Generate model
     model = SimulationModel(model_name, 
-                            100+dis, dis, 110+dis, 
+                            glacier_length+dis, dis, glacier_thickness+dis, 
                             [dis, dis, dis], # Change discretisation if needed here
                             [freespace, glacier, bedrock, water], # Change name of materials here
                             inout_files)
@@ -54,24 +76,25 @@ def main():
     # Generate base model
     water_inclusion_pos = model.water_inclusion(water_liquid_content, 
                                                 number_of_inclusions, 
-                                                max_radius_inclusions)
-    model.generate_base_glacier()
+                                                max_radius_inclusions,
+                                                h_glacier)
+    model.generate_base_glacier(h_freespace, h_bedrock)
 
     # Displace inclusions
     model_dis = InclusionDisplacer(model, water_inclusion_pos)
-    model_dis.displace()
+    model_dis.displace(lambda_val, alpha)
 
     measurement_step   = model.calculate_measurment_step(measurement_number, 
                                                         antenna_spacing) # Change antenna spacing in m here
     
     # Add antenna positions
-    transceiver1 = [5, # 25 cells of buffer (20 minimum)    
+    transceiver1 = [buffer_antenna, # 25 cells of buffer (20 minimum)    
                     0, # It is a 2D model, so y = 0
-                    4.5] # 0.5 cm above the glacier surface
+                    h_freespace - h_antenna] # 0.5 cm above the glacier surface
     
-    receiver1    = [5 + antenna_spacing, # 25 cells of buffer (20 minimum)
+    receiver1    = [buffer_antenna + antenna_spacing, # 25 cells of buffer (20 minimum)
                     0, # It is a 2D model, so y = 0
-                    4.5] # 0.5 cm above the glacier surface
+                    h_freespace - h_antenna] # 0.5 cm above the glacier surface
     
     #Plot initial model
     print("Producing plots...")
@@ -88,7 +111,7 @@ def main():
                                 path_to_files, 
                                 path_to_files + '_materials', 
                                 path_to_files + '_h5', 
-                                25e6,   # Change frequency in Hz here
+                                frequency,   # Change frequency in Hz here
                                 transceiver1, receiver1, 
                                 measurement_step, 
                                 time_window) # Change time window in s here
@@ -96,8 +119,8 @@ def main():
     # Run simulation
     if args.run:
         simulation_runner = SimulationRunner(model)
-        simulation_runner.run_simulation(measurement_number)
-        simulation_runner.merge_files(True)
+        simulation_runner.run_simulation(measurement_number, gpu_number, gpu_set)
+        simulation_runner.merge_files(merge_file)
         
     # Plot profile
     if args.plot:
@@ -117,7 +140,7 @@ def main():
                                 path_to_files_displaced, 
                                 path_to_files_displaced + '_materials', 
                                 path_to_files_displaced + '_h5', 
-                                25e6,   # Change frequency in Hz here
+                                frequency,   # Change frequency in Hz here
                                 transceiver1, receiver1, 
                                 measurement_step, 
                                 time_window) # Change time window in s here
@@ -125,8 +148,8 @@ def main():
     # Run the displaced model simulation
     if args.run:
         simulation_runner_displaced = SimulationRunner(model_dis)
-        simulation_runner_displaced.run_simulation(measurement_number)
-        simulation_runner_displaced.merge_files(True)
+        simulation_runner_displaced.run_simulation(measurement_number, gpu_number, gpu_set)
+        simulation_runner_displaced.merge_files(merge_file)
 
     # Plot the displaced model
     if args.plot:
