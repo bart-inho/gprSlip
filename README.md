@@ -1,68 +1,61 @@
-# GprMax Simulation for Temperate Glaciers
+# gprSlip
 
-This script uses gprMax, a finite-difference time-domain electromagnetic simulation software, to simulate ground penetrating radar scenarios applied to glaciology. It provides the ability to set up simulations, plot the initial state of the simulation, and visualize the results.
+## Overview
+`gprSlip` is an advanced simulation toolkit for modeling the Ground Penetrating Radar (GPR) response within temperate glaciers. It utilizes the `gprMax` software to account for the complexities of water inclusions in glacial structures. This tool allows for the creation of detailed glacial models, the simulation of GPR signal propagation, and the visualization of the simulation outputs.
 
-## Requirements:
-User must have gprMax installed and properly set up on their system. For more information, refer to the [gprMax documentation](https://docs.gprmax.com/en/latest/). gprSlip folder should be placed in the main gprMax folder.
+## Features
+- Customizable 2D glacial model generation with a variety of material parameters.
+- Dynamic inclusion of water bodies with tunable volume and distribution.
+- GPR signal simulation in glacial environments with high fidelity.
+- Support for multi-GPU computation to enhance simulation performance.
+- Plotting capabilities for both initial and modified glacial models.
 
-## Features:
+## Prerequisites
+`gprSlip` requires a working installation of `gprMax`, which is a highly flexible and widely used tool for simulating GPR. Ensure that `gprMax` is installed as per the official documentation found at [gprMax Documentation](https://www.gprmax.com/documentation).
 
-1. Initialize and visualize the geometry of a glacier model.
-2. Incorporate material properties of freespace, glacier, bedrock, and water.
-3. Generate random water inclusions in the glacier to simulate temperate glacier conditions.
-4. Plot the initialized glacier model with antenna positions.
-5. Output required input, material, and geometry files for gprMax.
-6. Execute gprMax simulations and visualize the results.
+## Installation
+To set up `gprSlip`, follow these steps after installing `gprMax`:
 
-## Usage:
+1. Clone the `gprSlip` repository into the main directory of your `gprMax` installation:
 
-### Command-Line Options:
-
-- `--model`: Generate the model files.
-- `--run`: Run the simulation.
-- `--plot`: Plot the simulation results.
-
-Example usage:
-
-```
-python main.py --run --plot
+```sh
+cd path/to/gprMax
+git clone https://github.com/bart-inho/gprSlip.git
 ```
 
-### Model Configuration:
+2. Navigate to the `gprSlip` directory:
 
-- Modify material properties in the `Material` class as required.
-- Change the glacier model dimensions and discretizations in the `SimulationModel` initialization.
-- Adjust the antenna positions, spacing, and measurement settings as needed.
+```sh
+cd gprSlip
+```
 
-## Files and Classes:
+## Configuration
+Before running a simulation, you may want to adjust the model parameters within `main.py`. These include:
 
-### Main Classes:
+- GPRMax settings: `dis`, `time_window`, `measurement_number`, `antenna_spacing`, `frequency`
+- Geometric properties: `glacier_length`, `glacier_thickness`, `buffer_antenna`, `h_antenna`
+- Water inclusion characteristics: `water_liquid_content`, `number_of_inclusions`, `max_radius_inclusions`
+- Simulation parameters: `gpu_number`, `gpu_set`, `merge_file`
 
-1. `SimulationModel`: Represents the glacier model, its geometry, and other attributes. Contains methods to generate the glacier base and water inclusions, and to plot the initial state.
-2. `InclusionDisplacer`: Creates a second model that contains displaced inclusions for ice-quakes modelling.
-3. `Material`: Represents materials (e.g., glacier, bedrock) and their electromagnetic properties.
-4. `FileService`: Contains methods to write the required input, materials, and geometry files for gprMax.
-5. `SimulationRunner`: Runs the simulation once the initial models are created
-6. `PlotProfile`: Plots the generated radagrams for first insights.
+## Usage
+With `gprSlip`, you can generate models, run simulations, and plot results using the following command-line options:
 
-### Dependencies:
+```sh
+python main.py [--model] [--run] [--plot]
+```
 
-- `numpy`: Used for numerical operations and array manipulations.
-- `matplotlib`: Used for plotting the initial state of the glacier model.
-- `h5py`: Used for writing the model's geometry to an HDF5 file, which is required for gprMax.
-- Various service modules (not provided in the script): `file_service`, `folder_init`, `simulation_runner`, `simulation_plot_profile`.
+- `--model`: Constructs the glacial model based on specified parameters.
+- `--run`: Initiates the simulation process using the generated model.
+- `--plot`: Produces graphical plots to visualize the simulation data.
 
-## 3. Running Simulations with `SimulationRunner`
+## Output
+`gprSlip` will generate several output files that represent the simulated GPR data. These can be reviewed directly or used in conjunction with other data analysis tools for further investigation.
 
-Once you've defined a `SimulationModel`, you can easily run a simulation using the `SimulationRunner` class. This class takes care of the actual simulation execution using the gprMax API.
+## Contributing
+We welcome contributions to the `gprSlip` project. To contribute:
 
-## Notes:
-1. Ensure you have all required modules installed.
-2. The plotting functions use `matplotlib` and `h5py` for reading the output data and visualizing it. Ensure you have both libraries installed.
-3. For the plotting to work correctly, you should provide the correct `rx_component` which denotes which component you want to visualize (e.g., 'Ez', 'Ex', 'Hy', etc.).
-4. The paths in the examples are placeholders. Make sure you replace them with the appropriate paths specific to your setup.
-
-
-## Contribution:
-
-Feel free to raise issues or submit pull requests for additional features or improvements.
+1. Fork the repository.
+2. Create a new branch for your feature.
+3. Commit your changes.
+4. Push to the branch.
+5. Create a new Pull Request.
