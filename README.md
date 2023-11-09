@@ -56,46 +56,6 @@ python main.py --run --plot
 
 Once you've defined a `SimulationModel`, you can easily run a simulation using the `SimulationRunner` class. This class takes care of the actual simulation execution using the gprMax API.
 
-### Example:
-
-```python
-from gprMax.gprMax import SimulationModel
-from your_script_name import SimulationRunner
-
-# Assuming you've defined a SimulationModel
-sim_model = SimulationModel(path="/path/to/your/model/", name="model_name")
-
-runner = SimulationRunner(simulation_model=sim_model)
-runner.run_simulation(measurement_number=10)  # Run the simulation for 10 measurements
-```
-
-If you need to merge the simulation files, you can use the `merge_files` method:
-
-```python
-runner.merge_files(remove_files=True)  # Merge and remove the original files
-```
-
-## 4. Plotting the Simulation Results with `PlotProfile`
-
-After running your simulations, you might want to visualize the results. Use the `PlotProfile` class for this.
-
-### Example:
-
-```python
-from your_script_name import PlotProfile
-
-# Create a PlotProfile instance
-profile = PlotProfile(outputfile="/path/to/your/output/file", rx_component="Ez")  # Let's say you want to plot the Ez component
-
-# Get the output data
-profile.get_output_data()
-
-# Plot the data
-profile.plot()
-```
-
-This will automatically create a plot of your simulation results using `matplotlib`.
-
 ## Notes:
 1. Ensure you have all required modules installed.
 2. The plotting functions use `matplotlib` and `h5py` for reading the output data and visualizing it. Ensure you have both libraries installed.
