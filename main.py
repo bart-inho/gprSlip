@@ -64,7 +64,7 @@ def main():
     receiver1    = [5 + antenna_spacing, # 25 cells of buffer (20 minimum)
                     0, # It is a 2D model, so y = 0
                     4.5] # 0.5 cm above the glacier surface
-
+    
     #Plot initial model
     print("Producing plots...")
     model.plot_initial_model(transceiver1, receiver1)

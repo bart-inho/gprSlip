@@ -67,9 +67,51 @@ class SimulationModel:
         self.model[:, :, 0:round(5.0/self.discrete[2])] = 0 # Freespace = 0
         self.model[:, :, round(105.0/self.discrete[2]):nz] = 2 # Bedrock = 2
 
+    def include_inclusions_loop(self, nx, nz, max_inclusion_radius, num_inclusions=5000):
+        water_matrix = np.zeros((nz, nx), dtype=bool)
+        cols, rows = np.meshgrid(np.arange(nx), np.arange(nz))
+        water_inclusion_pos = []
+        total_liquid_content = 0
+
+
+        for _ in tqdm(range(num_inclusions), desc='Creating water inclusions'):
+
+            x_center_pixel = np.random.rand() * nx
+            z_center_pixel = np.random.rand() * nz
+            radius = max_inclusion_radius
+
+            water_inclusion_pos.append([x_center_pixel, z_center_pixel, radius])
+            water_matrix = np.logical_or(water_matrix, ((rows - z_center_pixel) ** 2 + (cols - x_center_pixel) ** 2 <= (radius / self.discrete[2]) ** 2))
+
+            new_liquid_content = (np.pi * radius ** 2 / (self.x_size * self.z_size)) * 100
+            total_liquid_content += new_liquid_content
+        
+        return water_matrix, water_inclusion_pos, total_liquid_content
+
+    def include_inclusions_wc(self, nx, nz, max_inclusion_radius, liquid_water_content):
+        water_matrix = np.zeros((nz, nx), dtype=bool)
+        cols, rows = np.meshgrid(np.arange(nx), np.arange(nz))
+        water_inclusion_pos = []
+        total_liquid_content = 0
+
+        with tqdm(total=liquid_water_content) as pbar:
+            while total_liquid_content < liquid_water_content:
+                x_center_pixel = np.random.rand() * nx
+                z_center_pixel = np.random.rand() * nz
+                radius = max_inclusion_radius
+
+                water_inclusion_pos.append([x_center_pixel, z_center_pixel, radius])
+                water_matrix = np.logical_or(water_matrix, ((rows - z_center_pixel) ** 2 + (cols - x_center_pixel) ** 2 <= (radius / self.discrete[2]) ** 2))
+
+                new_liquid_content = (np.pi * radius ** 2 / (self.x_size * self.z_size)) * 100
+                total_liquid_content += new_liquid_content
+                pbar.update(round(new_liquid_content, 5))
+        
+        return water_matrix, water_inclusion_pos, total_liquid_content
+
     def water_inclusion(self, 
                         liquid_water_content=.1, 
-                        max_inclusion_radius=.1):
+                        max_inclusion_radius=.05):
         """
         Adds water inclusions to the glacier model.
         
@@ -89,36 +131,14 @@ class SimulationModel:
         self.model = np.zeros((nx, ny, nz), dtype=int)
         self.model[:, :, round(5.0 / self.discrete[2]):nz] = 1 # Glacier = 1
 
-        # Create a mesh grid based on the model dimensions
-        cols, rows = np.meshgrid(np.arange(nx), np.arange(nz))
-
         # Initiate a matrix to represent water presence (1 for water presence)
         water_matrix = np.zeros((nz, nx), dtype=bool)
         
         total_liquid_content = 0 # initialize the total liquid content
         
-        # We initialize tqdm in manual mode
-
-        with tqdm(total=liquid_water_content) as pbar:
-            while total_liquid_content < liquid_water_content:
-
-                x_center_pixel = np.random.rand() * nx # Randomly select a pixel in the x direction
-                z_center_pixel = np.random.rand() * nz # Randomly select a pixel in the z direction
-                radius = np.random.rand() * max_inclusion_radius # Randomly select a radius
-
-                # Store the water inclusion x, y and radius in a list
-                water_inclusion_pos.append([x_center_pixel, z_center_pixel, radius])
-
-                # This will create circles of water inclusions in the x-z plane
-                water_matrix = np.logical_or(water_matrix, ((rows - z_center_pixel) ** 2 + (cols - x_center_pixel) ** 2 <= (radius / self.discrete[2]) ** 2))
-                
-                # Calculate the new total liquid content after adding the inclusion
-                new_liquid_content = (np.pi * radius ** 2 / (self.x_size * self.z_size)) * 100
-                total_liquid_content += new_liquid_content
-
-                pbar.update(round(new_liquid_content, 5)) # Update the progress bar
-
-                i += 1 # Update the counter
+        # Add water inclusions until the total liquid content is reached
+        # water_matrix, total_liquid_content = self.include_inclusions_wc(nx, nz, max_inclusion_radius, liquid_water_content)
+        water_matrix, water_inclusion_pos, total_liquid_content = self.include_inclusions_loop(nx, nz, max_inclusion_radius, 5000)
         
         print('Total liquid content: ', round(total_liquid_content, 3), '%')
 

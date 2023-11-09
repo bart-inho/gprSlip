@@ -113,6 +113,10 @@ class InclusionDisplacer:
             new_z = z + disp_z
 
             self.new_water_inclusion_pos[idx] = [new_x, new_z, radius]
+        
+        # Print the maximum displacement on the x-axis and z-axis
+        print("Maximum displacement on the x-axis: ", round(self.dx * np.max(xchange_mat), 2))
+        print("Maximum displacement on the z-axis: ", round(self.dz * np.max(zchange_mat), 2))
 
     def displace_inclusions_grad(self, lambda_val, alpha):
         """ 
@@ -182,7 +186,7 @@ class InclusionDisplacer:
         self.model[:, :, 0:round(5.0/self.dz)] = 0 # Freespace = 0
         self.model[:, :, round(105.0/self.dz):nz] = 2 # Bedrock = 2
 
-    def displace(self, lambda_val=8, alpha=3.5):
+    def displace(self, lambda_val=3.6, alpha=3.5):
         """
         Displace the inclusions in the model and store the result in self.model.
         
