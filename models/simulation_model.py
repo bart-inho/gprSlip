@@ -110,8 +110,9 @@ class SimulationModel:
         return water_matrix, water_inclusion_pos, total_liquid_content
 
     def water_inclusion(self, 
-                        liquid_water_content=.1, 
-                        max_inclusion_radius=.05):
+                        liquid_water_content=0.1, 
+                        number_of_inclusions=5000,
+                        max_inclusion_radius=0.05):
         """
         Adds water inclusions to the glacier model.
         
@@ -138,7 +139,7 @@ class SimulationModel:
         
         # Add water inclusions until the total liquid content is reached
         # water_matrix, total_liquid_content = self.include_inclusions_wc(nx, nz, max_inclusion_radius, liquid_water_content)
-        water_matrix, water_inclusion_pos, total_liquid_content = self.include_inclusions_loop(nx, nz, max_inclusion_radius, 5000)
+        water_matrix, water_inclusion_pos, total_liquid_content = self.include_inclusions_loop(nx, nz, max_inclusion_radius, number_of_inclusions)
         
         print('Total liquid content: ', round(total_liquid_content, 3), '%')
 

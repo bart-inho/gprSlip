@@ -32,9 +32,18 @@ def main():
     bedrock   = Material(6. , 1.e-3, 1., 0., 'bedrock'  ) # Bedrock
     water     = Material(80. , 5.e-4   , 1., 0., 'water') # Water
 
+    # SET SIMULATION PARAMETERS
     dis = 0.05 # Discretisation in m
     time_window = 1.5e-6 # Time window in s
+    measurement_number = 200 # number of traces
+    antenna_spacing    = 4  # Change antenna spacing in [m] here
 
+    water_liquid_content = 0.1 # Water liquid content in %
+    number_of_inclusions = 5000 # Number of inclusions
+    max_radius_inclusions = 0.05 # Maximum radius of inclusions in m
+
+    lambda_val = 3.6 # width of the gaussian pulse in m
+    alpha = 3.5 # Attenuation in dB/m
     # Generate model
     model = SimulationModel(model_name, 
                             100+dis, dis, 110+dis, 
@@ -43,16 +52,15 @@ def main():
                             inout_files)
     
     # Generate base model
-    water_inclusion_pos = model.water_inclusion()
+    water_inclusion_pos = model.water_inclusion(water_liquid_content, 
+                                                number_of_inclusions, 
+                                                max_radius_inclusions)
     model.generate_base_glacier()
 
     # Displace inclusions
     model_dis = InclusionDisplacer(model, water_inclusion_pos)
     model_dis.displace()
 
-    # Determine measurement step
-    measurement_number = 200 # number of traces
-    antenna_spacing    = 4  # Change antenna spacing in [m] here
     measurement_step   = model.calculate_measurment_step(measurement_number, 
                                                         antenna_spacing) # Change antenna spacing in m here
     
