@@ -25,7 +25,7 @@ User must have gprMax installed and properly set up on their system. For more in
 Example usage:
 
 ```
-python your_script_name.py --run --plot
+python main.py --run --plot
 ```
 
 ### Model Configuration:
@@ -39,8 +39,11 @@ python your_script_name.py --run --plot
 ### Main Classes:
 
 1. `SimulationModel`: Represents the glacier model, its geometry, and other attributes. Contains methods to generate the glacier base and water inclusions, and to plot the initial state.
-2. `Material`: Represents materials (e.g., glacier, bedrock) and their electromagnetic properties.
-3. `FileService`: Contains methods to write the required input, materials, and geometry files for gprMax.
+2. `InclusionDisplacer`: Creates a second model that contains displaced inclusions for ice-quakes modelling.
+3. `Material`: Represents materials (e.g., glacier, bedrock) and their electromagnetic properties.
+4. `FileService`: Contains methods to write the required input, materials, and geometry files for gprMax.
+5. `SimulationRunner`: Runs the simulation once the initial models are created
+6. `PlotProfile`: Plots the generated radagrams for first insights.
 
 ### Dependencies:
 
