@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import csv
 
 
 class InclusionDisplacer:
@@ -71,7 +70,34 @@ class InclusionDisplacer:
 
         return np.exp(-alpha * np.sqrt((X - x0)**2 + (Z - z0)**2))
 
-    def displace_inclusions_lin(self, lambda_val, alpha):
+    def displace_inclusions_linear(self, max_disp_bottom, z_size):
+        """
+        Displace the inclusions linearly from a maximal displacement at the bottom to zero at the top.
+
+        Parameters:
+        - max_disp_bottom: Maximal displacement at the bottom of the domain.
+        - z_size: The total vertical size of the domain.
+
+        Returns:
+        None
+        """
+        for idx, (x, z, radius) in enumerate(self.water_inclusion_pos):
+            # Calculate the linear displacement factor for this inclusion
+            # Linear factor scales from 0 (at top, z=0) to 1 (at bottom, z=z_size)
+            linear_factor = z / z_size
+
+            # Calculate displacement based on the linear factor and maximal displacement
+            disp = linear_factor * max_disp_bottom
+
+            # Update positions, assuming horizontal (x-axis) displacement
+            new_x = x + disp  # or -disp if you want to displace in the opposite direction
+            # z position remains unchanged for this simplistic model
+            new_z = z
+
+            # Update the inclusion position with the new values
+            self.new_water_inclusion_pos[idx] = [new_x, new_z, radius]
+
+    def displace_inclusions_gauss(self, lambda_val, alpha):
         """ 
         Displace the inclusions based on a repulsive Gaussian field.
         
@@ -83,21 +109,22 @@ class InclusionDisplacer:
         None
         """
         # Define the grid
-        nx = round(self.x_size / self.dx)
+        nx = round(self.x_size / self.dx) 
         nz = round(self.z_size / self.dz)
         
-        xpos = np.linspace(0, self.x_size, nx)
-        zpos = np.linspace(0, self.z_size, nz)
+        xpos = np.linspace(0, self.x_size, nx) 
+        zpos = np.linspace(0, self.z_size, nz) 
         
         # Create the Gaussian window displacement for both axes
         new_xpos = xpos + lambda_val * self.gausswin(nx, alpha)
         zvec_func = lambda_val * self.gausswin(2 * nz, alpha)
-        new_zpos = zpos + zvec_func[:nz]
+        new_zpos = zpos + zvec_func[:nz] 
         
         # Compute change matrices
         xchange_mat = np.outer(new_xpos - xpos, new_zpos - zpos)
         zchange_mat = xchange_mat.copy()  # As per the MATLAB code provided
 
+        xchange_mat = xchange_mat*0
         self.plot_displacement_matrix(xchange_mat, zchange_mat)
 
         for idx, (x, z, radius) in enumerate(self.water_inclusion_pos):
@@ -112,6 +139,7 @@ class InclusionDisplacer:
             new_x = x + disp_x
             new_z = z + disp_z
 
+            # Update the new water inclusion position
             self.new_water_inclusion_pos[idx] = [new_x, new_z, radius]
         
         # Print the maximum displacement on the x-axis and z-axis
@@ -186,7 +214,7 @@ class InclusionDisplacer:
         self.model[:, :, 0:round(5.0/self.dz)] = 0 # Freespace = 0
         self.model[:, :, round(105.0/self.dz):nz] = 2 # Bedrock = 2
 
-    def displace(self, lambda_val=3.6, alpha=3.5):
+    def displace(self):
         """
         Displace the inclusions in the model and store the result in self.model.
         
@@ -194,8 +222,13 @@ class InclusionDisplacer:
         - lambda_val: Displacement parameter.
         - alpha: Gaussian window parameter.
         """
+        lambda_val=3.6 
+        alpha=3.5
+
+        max_disp_bottom = .4 * 6
+
         # self.displace_inclusions_grad(lambda_val, alpha)
-        self.displace_inclusions_lin(lambda_val, alpha)
+        self.displace_inclusions_linear(max_disp_bottom, self.z_size)
         self.apply_inclusions() 
         self.plot_displacement_scatter() 
 

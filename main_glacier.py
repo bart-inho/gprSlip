@@ -21,8 +21,8 @@ def main():
     InitializeFolders.check_and_create_directories()
 
     # Initialize folders paths
-    model_name    = 'temp_ice'
-    model_name_displaced = 'temp_ice_dis'
+    model_name    = 'temp_ice_sim5'
+    model_name_displaced = 'temp_ice_sim5_dis'
     inout_files   = 'inout_files/'
     path_to_files = inout_files + model_name
 
@@ -30,7 +30,7 @@ def main():
     freespace = Material(1. , 0.   , 1., 0., 'freespace') # Free space
     glacier   = Material(3.2, 5.e-8, 1., 0., 'glacier'  ) # Glacier
     bedrock   = Material(6. , 1.e-3, 1., 0., 'bedrock'  ) # Bedrock
-    water     = Material(80. , 5.e-4   , 1., 0., 'water') # Water
+    water     = Material(80., 5.e-4, 1., 0., 'water'    ) # Water
 
     # SET SIMULATION PARAMETERS =================================================
 
@@ -49,10 +49,10 @@ def main():
 
     # Inclusions parameters
     water_liquid_content = 0.1 # Water liquid content in %
-    number_of_inclusions = 300 # Number of inclusions
+    number_of_inclusions = 50 # Number of inclusions
     max_radius_inclusions = 0.05 # Maximum radius of inclusions in m
 
-    lambda_val = 3.6 # width of the gaussian pulse in m
+    lambda_val = 1.5 # width of the gaussian pulse in m
     alpha = 3.5 # Attenuation in dB/m
 
     h_freespace = 5. # Height of the freespace in m
@@ -60,8 +60,8 @@ def main():
     h_glacier = 5. # Height of the glacier in m
 
     # Simulation parameters
-    gpu_number = 8 # Number of GPUs to use
-    gpu_set = [0, 1, 2, 3, 4, 5, 6, 7] # GPUs to use
+    gpu_number = 4 # Number of GPUs to use
+    gpu_set = [0, 1, 2, 3]#, 4, 5, 6, 7] # GPUs to use
     merge_file = True # Merge the files after simulation
 
     # =========================================================================
@@ -82,7 +82,7 @@ def main():
 
     # Displace inclusions
     model_dis = InclusionDisplacer(model, water_inclusion_pos)
-    model_dis.displace(lambda_val, alpha)
+    model_dis.displace()
 
     measurement_step   = model.calculate_measurment_step(measurement_number, 
                                                         antenna_spacing) # Change antenna spacing in m here
